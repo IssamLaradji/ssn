@@ -4,7 +4,7 @@ import itertools
 from haven import haven_utils as hu
 
 sgd_armijo_list =  [{"name":"sgd_armijo", "eta_max":1, "gamma":1.5}]
-others_list = [{'name':"svrg"},{'name':"adam"},  {'name':"adagrad"}]
+others_list = [{'name':"adam"}, {'name':"svrg"}, {'name':"adagrad"}]
 sgd_polyak_list = [{"name":"sgd_polyak", "c": 0.1, "momentum": 0.6, "eta_bound":1, "gamma":1.5, "reset":1}]
 
 opt_list = others_list + sgd_polyak_list + sgd_armijo_list
@@ -13,7 +13,7 @@ syn_datasets = ["synthetic"]
 syn_n_samples = [10000]
 syn_dims = [20]
 margin_list = [0.01, 0.05, 0.1, 0.5]
-kernel_datasets = ["ijcnn", "rcv1", "mushrooms"]
+kernel_datasets = ["mushrooms", "ijcnn", "rcv1"]
 
 loss_list = [ 
        "squared_hinge_loss", 
@@ -37,7 +37,7 @@ EXP_GROUPS = {
                 "n_samples": syn_n_samples,
                 "d": syn_dims,
                 "opt": opt_list + [{"name":"ssn", "lm":1e-3},
-                                 {"name":"slbfgs", 'line_search_fn':'sls', 'lr':0.9, "lm":1e-4, "history_size":10}],
+                                   {"name":"slbfgs", 'line_search_fn':'sls', 'lr':0.9, "lm":1e-4, "history_size":10}],
                 "margin":margin_list,
                 "batch_size":[100],
                 "max_epoch":max_epoch,
@@ -65,7 +65,8 @@ EXP_GROUPS = {
                 "acc_func": ["logistic_accuracy"],
                 "n_samples": syn_n_samples,
                 "d": syn_dims,
-                "opt":[{"name":"ssn","lm":0}, {"name":"lbfgs", "history_size":10, "max_iter":2}],
+                "opt":[{"name":"ssn","lm":0}, 
+                       {"name":"lbfgs", "history_size":10, "max_iter":2}],
                 "margin":margin_list,
                 "batch_size":["full"],
                 "max_epoch":max_epoch,

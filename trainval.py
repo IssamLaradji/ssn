@@ -8,7 +8,9 @@ import time
 import tqdm
 import exp_configs
 import pprint 
+
 from src import datasets, models, optimizers, metrics
+from src import utils as ut
 
 from haven import haven_utils as hu
 from haven import haven_results as hr
@@ -43,6 +45,7 @@ def trainval(exp_dict, savedir_base, reset=False):
 
     # Dataset
     # -----------
+    
 
     # train loader
     train_set = datasets.get_dataset(dataset_name=exp_dict["dataset"],
@@ -50,10 +53,14 @@ def trainval(exp_dict, savedir_base, reset=False):
                                      datadir=savedir_base,
                                      exp_dict=exp_dict)
 
+    batch_size = exp_dict["batch_size"]
+    if batch_size == "full":
+        batch_size =  len(train_set)
+        
     train_loader = torch.utils.data.DataLoader(train_set,
                               drop_last=True,
                               shuffle=True,
-                              batch_size=exp_dict["batch_size"])
+                              batch_size=batch_size)
 
     # val set
     val_set = datasets.get_dataset(dataset_name=exp_dict["dataset"],
@@ -70,7 +77,7 @@ def trainval(exp_dict, savedir_base, reset=False):
     loss_function = metrics.get_metric_function(exp_dict["loss_func"])
 
     # Load Optimizer
-    n_batches_per_epoch = len(train_set) / float(exp_dict["batch_size"])
+    n_batches_per_epoch = len(train_set) / float(batch_size)
     opt = optimizers.get_optimizer(opt_dict=exp_dict["opt"],
                                    params=model.parameters(),
                                    n_batches_per_epoch =n_batches_per_epoch,
@@ -163,6 +170,15 @@ def trainval(exp_dict, savedir_base, reset=False):
 
         score_list += [score_dict]
 
+        # grow batch if needed
+        if exp_dict.get("batch_grow_factor") is not None and exp_dict['opt']['name'] == "ssn":
+            train_loader, opt = ut.update_trainloader_and_opt(train_set,
+                                                            opt, 
+                                                            batch_size=train_loader.batch_size, 
+                                                            n_train=len(train_set), 
+                                                            batch_grow_factor=exp_dict["batch_grow_factor"], 
+                                                            batch_size_max=exp_dict["batch_size_max"])
+
         # Report and save
         print(pd.DataFrame(score_list).tail())
         hu.save_pkl(score_list_path, score_list)
@@ -180,7 +196,7 @@ if __name__ == '__main__':
     parser.add_argument('-sb', '--savedir_base', required=True)
     parser.add_argument('-r', '--reset',  default=0, type=int)
     parser.add_argument('-ei', '--exp_id', default=None)
-    parser.add_argument('-v', '--view_jupyter', default=None)
+    parser.add_argument('-v', '--view_results', default=None)
     parser.add_argument('-j', '--run_jobs', default=None)
 
     args = parser.parse_args()
@@ -203,7 +219,7 @@ if __name__ == '__main__':
 
     # Run experiments or View them
     # ----------------------------
-    if args.view_jupyter:
+    if args.view_results:
         # view results
         hj.view_jupyter(exp_list, 
                         savedir_base=args.savedir_base, 

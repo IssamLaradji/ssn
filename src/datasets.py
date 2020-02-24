@@ -39,17 +39,6 @@ def get_dataset(dataset_name, train_flag, datadir, exp_dict):
         splits = train_test_split(X, y, test_size=0.2, shuffle=False, random_state=42)
         X_train, X_test, Y_train, Y_test = splits
 
-        # ====================
-        # s_list = np.ones(X_train.shape[0])*-1
-        # for i in range(X_train.shape[0]):
-        #     x = X_train[i]
-        #     xx = np.outer(x, x)
-        #     e = np.linalg.eigh(xx)[0].max()
-        #     s = 1./(0.5*e + 2*1e-4)
-        #     s_list[i] = s
-        # print('margin', margin, 's_max', s_list.max())
-
-        # =====================
         X_train = torch.FloatTensor(X_train)
         X_test = torch.FloatTensor(X_test)
 
@@ -61,24 +50,54 @@ def get_dataset(dataset_name, train_flag, datadir, exp_dict):
         else:
             dataset = torch.utils.data.TensorDataset(X_test, Y_test)
 
+    if dataset_name in ["mushrooms", "rcv1", "ijcnn"]:
+
+        sigma_dict = {"mushrooms": 0.5,
+                      "w8a":20.0,
+                      "rcv1":0.25 ,
+                      "ijcnn":0.05}
+
+        X, y = load_libsvm(dataset_name, data_dir=datadir)
+
+        labels = np.unique(y)
+
+        y[y==labels[0]] = 0
+        y[y==labels[1]] = 1
+
+        splits = train_test_split(X, y, test_size=0.2, shuffle=True, random_state=9513451)
+        X_train, X_test, Y_train, Y_test = splits
+
+        if train_flag:
+            k_train_X = rbf_kernel(X_train, X_train, sigma_dict[dataset_name])
+
+            X_train = k_train_X
+            X_train = torch.FloatTensor(X_train)
+            Y_train = torch.FloatTensor(Y_train)
+
+            dataset = torch.utils.data.TensorDataset(X_train, Y_train)
+
+        else:
+            k_test_X = rbf_kernel(X_test, X_train, sigma_dict[dataset_name])
+
+            X_test = k_test_X
+            X_test = torch.FloatTensor(X_test)
+            Y_test = torch.FloatTensor(Y_test)
+
+            dataset = torch.utils.data.TensorDataset(X_test, Y_test)
+
+
     return DatasetWrapper(dataset)
 
 class DatasetWrapper(Dataset):
     def __init__(self, dataset):
         self.dataset = dataset
-        self.fstar_list = None
         
     def __getitem__(self, index):
         data, target = self.dataset[index]
 
-        if self.fstar_list is not None:
-            fstar_list = self.fstar_list[index]
-        else:
-            fstar_list = -1
-
         return {"images":data, 
                 'labels':target, 
-                'meta':{'indices':index, 'fstar':fstar_list}}
+                'meta':{'indices':index}}
         
     def __len__(self):
         return len(self.dataset)

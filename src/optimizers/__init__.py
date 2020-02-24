@@ -80,11 +80,11 @@ def get_optimizer(opt_dict, params, n_batches_per_epoch=None, n_train=None,
                                 )
 
     elif opt_name == "adam":
-        best_lr = lr if lr else 0.001
+        best_lr = opt_dict.get('lr', 0.001)
         opt = torch.optim.Adam(params, lr=best_lr)
 
     elif opt_name == "adagrad":
-        best_lr = lr if lr else 0.01
+        best_lr = opt_dict.get('lr', 0.01)
         opt = torch.optim.Adagrad(params, lr=best_lr)
 
     elif opt_name == 'sgd':

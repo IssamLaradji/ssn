@@ -6,6 +6,7 @@ __pycache__/
 # C extensions
 *.so
 .vscode/
+user_configs.py
 .tmp/
 results/
 # Distribution / packaging
