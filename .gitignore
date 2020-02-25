@@ -8,7 +8,7 @@ __pycache__/
 .vscode/
 user_configs.py
 .tmp/
-results/
+# results/
 # Distribution / packaging
 .Python
 build/

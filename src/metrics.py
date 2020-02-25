@@ -14,6 +14,9 @@ def get_metric_function(metric_name):
 
     elif metric_name == "squared_hinge_loss":
         return squared_hinge_loss
+    
+    else:
+        raise ValueError('%s metric not exist' % metric_name)
 
 
 @torch.no_grad()
