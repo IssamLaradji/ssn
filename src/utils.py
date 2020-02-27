@@ -15,7 +15,7 @@ def update_trainloader_and_opt(train_set, opt, batch_size, n_train, batch_grow_f
                                           drop_last=False, 
                                          shuffle=True)
                                          
-    opt.n_batches_in_epoch = (n_train // batch_size_new)
+    opt.n_batches_per_epoch = (n_train // batch_size_new)
     opt.lm = opt.lm / (np.sqrt(batch_grow_factor ** n_iters))
     print('LM regularization = ', opt.lm)
 

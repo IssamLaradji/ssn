@@ -31,10 +31,9 @@ def get_kernel_exp_list(dataset, loss,
                         ssn_const_lm,
                         ssn_grow_lm,  
                         slbfgs_lr, 
-                        slbfgs_lm):
-    exp_list = (
-        
-    hu.cartesian_exp_group({
+                        slbfgs_lm,
+                        grow_only=False):
+    exp_list =  hu.cartesian_exp_group({
         "dataset":dataset,
         "model":model,
         "loss_func": loss,
@@ -45,9 +44,10 @@ def get_kernel_exp_list(dataset, loss,
         "runs":run_list,
         "batch_grow_factor":batch_grow_factor,
         "batch_size_max":batch_size_max,})
-        +
-        hu.cartesian_exp_group(
-    {"dataset":dataset,
+     
+    if not grow_only:
+        exp_list += hu.cartesian_exp_group(
+            {"dataset":dataset,
         "model":model,
         "loss_func": loss,
         "acc_func": ["logistic_accuracy"],
@@ -57,40 +57,13 @@ def get_kernel_exp_list(dataset, loss,
         "batch_size":[100],
         "max_epoch":max_epoch,
         "runs":run_list})
-            )
 
     return exp_list
 
-def get_ijcnn_grid_search():
-    exp_list = hu.cartesian_exp_group({
-        "dataset":'ijcnn',
-        "model":model,
-        "loss_func": ['logistic_loss', 'squared_hinge_loss'],
-        "acc_func": ["logistic_accuracy"],
-        "opt":[{"name":"ssn", "lm":lm} for lm in (1e-2, 1e-3, 1e-4, 1e-5, 1e-6)],
-        "batch_size":[100],
-        "max_epoch":max_epoch,
-        "runs":run_list,
-        "batch_grow_factor":batch_grow_factor,
-        "batch_size_max":batch_size_max,})
-        
 
-    return exp_list
 
-def get_syn_exp_list(loss):
+def get_syn_exp_list(loss, grow_only=False):
     exp_list = hu.cartesian_exp_group({"dataset":syn_datasets,
-                "model":model,
-                "loss_func": loss,
-                "acc_func": ["logistic_accuracy"],
-                "n_samples": syn_n_samples,
-                "d": syn_dims,
-                "opt": opt_list + [{"name":"ssn", "lm":1e-3},
-                                   {"name":"slbfgs", 'line_search_fn':'sls', 'lr':0.9, "lm":1e-4, "history_size":10}],
-                "margin":margin_list,
-                "batch_size":[100],
-                "max_epoch":max_epoch,
-                "runs":run_list})
-    exp_list += hu.cartesian_exp_group({"dataset":syn_datasets,
                 "model":model,
                 "loss_func": loss,
                 "acc_func": ["logistic_accuracy"],
@@ -103,6 +76,21 @@ def get_syn_exp_list(loss):
                 "runs":run_list,
                 "batch_grow_factor":batch_grow_factor,
                 "batch_size_max":batch_size_max,})
+    if grow_only:
+        return exp_list
+    exp_list += hu.cartesian_exp_group({"dataset":syn_datasets,
+                "model":model,
+                "loss_func": loss,
+                "acc_func": ["logistic_accuracy"],
+                "n_samples": syn_n_samples,
+                "d": syn_dims,
+                "opt": opt_list + [{"name":"ssn", "lm":1e-3},
+                                   {"name":"slbfgs", 'line_search_fn':'sls', 'lr':0.9, "lm":1e-4, "history_size":10}],
+                "margin":margin_list,
+                "batch_size":[100],
+                "max_epoch":max_epoch,
+                "runs":run_list})
+    
     exp_list += hu.cartesian_exp_group({"dataset":syn_datasets,
                 "model":model,
                 "loss_func": loss,
@@ -117,49 +105,46 @@ def get_syn_exp_list(loss):
                 "runs":run_list})
     return exp_list
 
+
+grow_only = 0
 EXP_GROUPS = {
         # synthetic experiments
-        "syn_logistic":get_syn_exp_list('logistic_loss'),
-        "syn_squared_hinge":get_syn_exp_list('squared_hinge_loss'),
+        "syn_logistic":get_syn_exp_list('logistic_loss', grow_only),
+        "syn_squared_hinge":get_syn_exp_list('squared_hinge_loss', grow_only),
 
 
-        # kernel experiments
-        "ssn_const":hu.cartesian_exp_group({"dataset":['ijcnn'],
-                "model":model,
-                "loss_func": ['logistic_loss'],
-                "acc_func": ["logistic_accuracy"],
-                "opt": [{"name":"ssn", "lm":1e-3}],
-                "batch_size":[100],
-                "max_epoch":max_epoch,
-                "runs":run_list}),
         "mushrooms_logistic":get_kernel_exp_list(dataset='mushrooms', 
                                                  loss='logistic_loss', 
                                                  ssn_const_lm=1e-3,  
                                                  ssn_grow_lm=1e-4, 
                                                  slbfgs_lr=0.5, 
-                                                 slbfgs_lm=1e-4
+                                                 slbfgs_lm=1e-4,
+                                                 grow_only=grow_only
                                                  ),
         "mushrooms_squared_hinge":get_kernel_exp_list(dataset='mushrooms', 
                                                  loss='squared_hinge_loss', 
                                                  ssn_const_lm=1e-3,  
                                                  ssn_grow_lm=1e-3, 
                                                  slbfgs_lr=0.5, 
-                                                 slbfgs_lm=0
+                                                 slbfgs_lm=0,
+                                                 grow_only=grow_only
                                                  ),
-        "ijcnn_grid_search":get_ijcnn_grid_search(),
+        # "ijcnn_grid_search":get_ijcnn_grid_search(),
          "ijcnn_logistic":get_kernel_exp_list(dataset='ijcnn', 
                                                  loss='logistic_loss', 
                                                  ssn_const_lm=1e-3,  
                                                  ssn_grow_lm=1e-4, 
                                                  slbfgs_lr=0.5, 
-                                                 slbfgs_lm=1e-4
+                                                 slbfgs_lm=1e-4,
+                                                 grow_only=grow_only
                                                  ),
         "ijcnn_squared_hinge":get_kernel_exp_list(dataset='ijcnn', 
                                                  loss='squared_hinge_loss', 
                                                  ssn_const_lm=1e-3,  
                                                  ssn_grow_lm=1e-3, 
                                                  slbfgs_lr=0.5, 
-                                                 slbfgs_lm=0
+                                                 slbfgs_lm=0,
+                                                 grow_only=grow_only
                                                  ),
 
         "rcv1_logistic":get_kernel_exp_list(dataset='rcv1', 
@@ -167,32 +152,19 @@ EXP_GROUPS = {
                                                  ssn_const_lm=1e-3,  
                                                  ssn_grow_lm=1e-3, 
                                                  slbfgs_lr=0.1, 
-                                                 slbfgs_lm=1e-4
+                                                 slbfgs_lm=1e-4,
+                                                 grow_only=grow_only
                                                  ),
         "rcv1_squared_hinge":get_kernel_exp_list(dataset='rcv1', 
                                                  loss='squared_hinge_loss', 
                                                  ssn_const_lm=1e-3,  
                                                  ssn_grow_lm=1e-3, 
                                                  slbfgs_lr=0.1, 
-                                                 slbfgs_lm=0
+                                                 slbfgs_lm=0,
+                                                 grow_only=grow_only
                                                  ),
-        # "rcv1_logistic":
-        # "rcv1_squared_hinge":
 
-        "kernels_grow":hu.cartesian_exp_group({"dataset":kernel_datasets,
-                "model":model,
-                "loss_func": loss_list,
-                "acc_func": ["logistic_accuracy"],
-                # "opt":[{"name":"ssn", "lm":lm} for lm in [0, 1e-3, 1e-4, 1e-6]],
-                "opt":[
-                    {"name":"ssn", "lm":1e-3}, {"name":"ssn", "lm":1e-4}],
-                "batch_size":[100],
-                "max_epoch":max_epoch,
-                "runs":run_list,
-                "batch_grow_factor":batch_grow_factor,
-                "batch_size_max":batch_size_max,}),
-
-            }
+}
 
 # grid search results
 step_sizes = {
