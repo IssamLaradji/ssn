@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from . import ssn, sls, sls_acc, slbfgs, svrg
+import ssn
 
 
 def get_optimizer(opt_dict, params, n_batches_per_epoch=None, n_train=None,
@@ -28,7 +28,7 @@ def get_optimizer(opt_dict, params, n_batches_per_epoch=None, n_train=None,
     elif opt_name == "sgd_armijo":
         c = opt_dict.get("c", 0.1)
         
-        opt = sls.Sls(params,
+        opt = ssn.Sls(params,
                     c = c,
                     n_batches_per_epoch=n_batches_per_epoch,
                     line_search_fn="armijo", 
@@ -37,7 +37,7 @@ def get_optimizer(opt_dict, params, n_batches_per_epoch=None, n_train=None,
                     eta_max=opt_dict.get("eta_max"))
 
     elif opt_name == "sgd_polyak":
-        opt = sls_acc.SlsAcc(params, 
+        opt = ssn.SlsAcc(params, 
                          c=opt_dict.get("c") or 0.1,
                          momentum=opt_dict.get("momentum", 0.6),
                          n_batches_per_epoch=n_batches_per_epoch,

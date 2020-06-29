@@ -16,21 +16,21 @@ def CG(A_bmm, b, optTol, verbose, maxIter):
         pAp = p.t().dot(Ap)
 
         if pAp <= 1e-16:
-            print(k, pAp.item(), "Non-positive curvature detected")
+            # print(k, pAp.item(), "Non-positive curvature detected")
 
             if pAp < 0:
                 # negative 
-                print(k, pAp.item(),  "Negative curvature detected")
+                # print(k, pAp.item(),  "Negative curvature detected")
                 p = p / torch.norm(p)
                 p = p / torch.sum(torch.abs(b))
 
                 return p
             
             if k == 0:
-                print("first iter, proceeding")
+                # print("first iter, proceeding")
                 done = 1 
             else:
-                print("Stopping")
+                # print("Stopping")
                 break
         else:
             # conjugate gradient
