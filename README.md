@@ -61,5 +61,3 @@ Other experiment groups are defined in `exp_configs.py`, which are the following
   year={2020}
 }
 ```
-
-It is a collaborative work between labs at MILA, Element AI, and UBC.
