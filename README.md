@@ -15,7 +15,7 @@ Install the ssn optimizer.
 `pip install git+https://github.com/IssamLaradji/ssn.git`
 
 
-Install the [Haven library](https://github.com/haven-ai/haven) for managing the experiments.
+Install the [Haven library](https://github.com/haven-ai/haven-ai) for managing the experiments.
 
 `pip install -r requirements.txt`
 
